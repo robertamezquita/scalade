@@ -16,7 +16,6 @@ knitr::opts_chunk$set(
 # scalade <img src='man/assets/scalade-logo.png' align="right" height="200" />
 
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/robertamezquita/scalade/workflows/R-CMD-check/badge.svg)](https://github.com/robertamezquita/scalade/actions)
 [![Lifecycle: experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
 
@@ -72,7 +71,7 @@ scalade::inspect_ladders('bioc_sc_methods')
 
 ### Installing & Upgrading Ladders
 
-Thus we see have a ladder called `bioc_sc_methods` (single-cell methods from Bioconductor). We have most of the packages already (indicated by the checkmark), but there may be cases where we don't have all of them. In case of any missing packages (marked by an X), or even if we just want to upgrade our ladder, we can install/upgrade via:
+We see we have a (prebuilt) ladder called `bioc_sc_methods` (single-cell methods from Bioconductor). We have most of the packages already (indicated by the checkmark), but there may be cases where we don't have all of them. In case of any missing packages (marked by an X), or even if we just want to upgrade our ladder, we can install/upgrade via:
 
 ```{r install, eval=FALSE}
 scalade::transport_ladder('bioc_sc_methods')
@@ -85,7 +84,11 @@ This can be thought of as "transporting" the ladder from some store (repository)
 Now, let's say we want to create a new ladder definition. We can do that either by directly interactively editing the ladder file via `scalade::edit_ladders()` or by creating new entries via:
 
 ```{r new}
-scalade::build_ladder(id = 'my_favorites', repo = 'CRAN', packages = c('dplyr', 'tidyr', 'purrr'))
+scalade::build_ladder(
+  id = 'my_favorites', 
+  repo = 'CRAN', 
+  packages = c('dplyr', 'tidyr', 'purrr')
+)
 ```
 
 Great! But maybe later we will have new favorite packages and want to clean up our ladder collection - in that case we can destroy existing ladders:
@@ -98,14 +101,14 @@ To prevent any accidents, setting the `overwrite = TRUE` argument is required.
 
 ### Attaching Ladders
 
-Finally, we come to the best part: actually using our ladders! We can attach our ladders to our project (e.g. load all the packages for a given set of ladders) via:
+Finally, we come to the best part: actually using our ladders! We can attach a ladder or even multiple ladders to our project (e.g. load all the packages for a given set of ladders) via:
 
 ```{r attach,eval=FALSE}
 scalade::climb_ladder('tidypkgs')
 scalade::climb_ladder('viz_static', 'networks')
 ```
 ```{r attachsmall}
-scalade::climb_ladder('pretty_prompt')
+scalade::climb_ladder('viz_static')
 ```
 
 Thus, for your projects, in lieu of library you can call upon the `climb_ladder()` function to load your family of functions all at once. 

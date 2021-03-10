@@ -5,7 +5,6 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/robertamezquita/scalade/workflows/R-CMD-check/badge.svg)](https://github.com/robertamezquita/scalade/actions)
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
 <!-- badges: end -->
@@ -100,11 +99,11 @@ scalade::inspect_ladders('bioc_sc_methods')
 
 ### Installing & Upgrading Ladders
 
-Thus we see have a ladder called `bioc_sc_methods` (single-cell methods
-from Bioconductor). We have most of the packages already (indicated by
-the checkmark), but there may be cases where we don’t have all of them.
-In case of any missing packages (marked by an X), or even if we just
-want to upgrade our ladder, we can install/upgrade via:
+We see we have a (prebuilt) ladder called `bioc_sc_methods` (single-cell
+methods from Bioconductor). We have most of the packages already
+(indicated by the checkmark), but there may be cases where we don’t have
+all of them. In case of any missing packages (marked by an X), or even
+if we just want to upgrade our ladder, we can install/upgrade via:
 
 ``` r
 scalade::transport_ladder('bioc_sc_methods')
@@ -120,7 +119,11 @@ either by directly interactively editing the ladder file via
 `scalade::edit_ladders()` or by creating new entries via:
 
 ``` r
-scalade::build_ladder(id = 'my_favorites', repo = 'CRAN', packages = c('dplyr', 'tidyr', 'purrr'))
+scalade::build_ladder(
+  id = 'my_favorites', 
+  repo = 'CRAN', 
+  packages = c('dplyr', 'tidyr', 'purrr')
+)
 ```
 
 Great! But maybe later we will have new favorite packages and want to
@@ -137,8 +140,8 @@ required.
 ### Attaching Ladders
 
 Finally, we come to the best part: actually using our ladders! We can
-attach our ladders to our project (e.g. load all the packages for a
-given set of ladders) via:
+attach a ladder or even multiple ladders to our project (e.g. load all
+the packages for a given set of ladders) via:
 
 ``` r
 scalade::climb_ladder('tidypkgs')
@@ -146,8 +149,12 @@ scalade::climb_ladder('viz_static', 'networks')
 ```
 
 ``` r
-scalade::climb_ladder('pretty_prompt')
-#> NULL
+scalade::climb_ladder('viz_static')
+#> ── Attaching packages ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── viz_static ──
+#> ✔ ggplot2          3.3.3     ✔ ggforce          0.3.2
+#> ✔ httpgd           1.0.1     ✔ scico            1.2.0
+#> ✔ ragg             1.1.1     ✔ hierarchicalSets 1.0.2
+#> ✔ patchwork        1.1.1
 ```
 
 Thus, for your projects, in lieu of library you can call upon the
