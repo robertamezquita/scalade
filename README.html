@@ -106,7 +106,7 @@ body {
 <div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>scalade<span class="sc">::</span><span class="fu">climb</span>(<span class="st">&#39;my_project_pkgs&#39;</span>, <span class="at">.scalade =</span> here<span class="sc">::</span><span class="fu">here</span>(<span class="st">&#39;project_v1.Rscalade&#39;</span>))</span></code></pre></div>
 <p>Note that even if you have a globally set .Rscalade as set by <code>scalade::affix()</code> that providing the <code>.scalade</code> argument will override that. This applies to all the functions. See <code>.check_rscalade()</code> for details on the search path.</p>
 <h2 id="contributions">Contributions</h2>
-<p>Always welcome, please feel free to add ladders (see <code>R/aaa.R</code>) and make PRs to enhance the package.</p>
+<p>Always welcome, please feel free to add ladders (see <code>data-raw/predefined-ladders.R</code>) and make PRs to enhance the package.</p>
 <h2 id="inspiration">Inspiration</h2>
 <p>This was <em>heavily</em> lifted from the <a href="https://github.com/tidyverse/tidyverse">tidyverse meta package</a>. I found that I was using this package as a template for other <code>&quot;*verses&quot;</code> I was working on, and wanted to come up with a way to generalize this style of loading packages all at once. It’s nice to not have to type in the same set of packages over and over again!</p>
 <p>The name and theme comes from the act of building ladders to scale a castle’s fortifications. The ladders are thus handy helpers when it comes to tackling that big project (the castle) that requires all the libraries under the sun.</p>

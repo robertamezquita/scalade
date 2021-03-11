@@ -201,8 +201,8 @@ details on the search path.
 
 ## Contributions
 
-Always welcome, please feel free to add ladders (see `R/aaa.R`) and make
-PRs to enhance the package.
+Always welcome, please feel free to add ladders (see
+`data-raw/predefined-ladders.R`) and make PRs to enhance the package.
 
 ## Inspiration
 
