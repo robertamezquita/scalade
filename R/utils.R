@@ -26,9 +26,6 @@ text_col <- function(x) {
 #' List all packages in the scalade
 #'
 #' @param include_self Include scalade in the list?
-#' @export
-#' @examples
-#' scalade_packages()
 scalade_packages <- function(include_self = TRUE) {
     raw <- utils::packageDescription("scalade")$Imports
     imports <- strsplit(raw, ",")[[1]]

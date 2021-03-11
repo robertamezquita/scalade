@@ -11,6 +11,7 @@ Helpers to work with SingleCellExperiments. A series of ladders.
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://robertamezquita.github.io/scalade}
   \item \url{https://github.com/robertamezquita/scalade}
   \item Report bugs at \url{https://github.com/robertamezquita/scalade/issues}
 }

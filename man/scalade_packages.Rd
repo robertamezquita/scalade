@@ -12,6 +12,3 @@ scalade_packages(include_self = TRUE)
 \description{
 List all packages in the scalade
 }
-\examples{
-scalade_packages()
-}

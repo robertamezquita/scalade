@@ -120,7 +120,7 @@ pkg_compendium <- list(
     Remote = remote_pkgs
 )
 
-scalade_prebuilt_ladders <- tibble::tibble(
+scalade_prebuilt <- tibble::tibble(
     repo = names(pkg_compendium),
     v = purrr::map(pkg_compendium, ~.)
 ) %>%

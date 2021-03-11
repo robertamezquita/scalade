@@ -1,80 +1,135 @@
-#' @title Getting started - creating a ~/.Rscalade definition file
+#' @title Creating a fresh .Rscalade definition file
 #'
 #' @description
 #' This function should be the first one run out of the box, as it creates a
 #' baseline definition file that contains predefined ladders.
 #'
-#' @details Definitions
-#' This package relies on a centrally cached definitions file that is created
-#' upon first setting up the package with `setup_ladders()` .
+#' @details
+#' This package relies on having an available ladder definition file
+#' (.Rscalade). Thus, to use the package, a starting version must be created
+#' via `scalade::fresh()`.
 #'
-#' @param overwrite Whether to overwrite an existing ~/.Rscalade file with
-#'   the original base predefined set of ladders from this package.
+#' @param mode One of three options. "home" will create a .Rscalade in your user home
+#'   directory. "local" will create a project specific .Rscalade (where your project
+#'   location is defined by `here::here()`). "manual" will use the provided .scalade
+#'   argument.
+#' @param overwrite If there is an existing .Rscalade file, whether to overwrite it
+#'   with the predefined ladder definitions from this package.
+#' @param .scalade Manually provided desired path for the fresh .Rscalade.
 #'
 #' @return None; called for side-effect of writing ~/.Rscalade
 #'
-#' @name setup_ladders
-NULL
-
-#' @rdname setup_ladders
+#' @name setup
 #' @export
-setup_ladders <- function(overwrite = FALSE, .scalade = NULL) {
-    if (is.null(.scalade)) {
+setup <- function(mode = "home", overwrite = FALSE, .scalade = NULL) {
+    if (mode == "home") {
         .scalade <- fs::path_expand("~/.Rscalade")
     }
-    ladders_exist <- fs::file_exists(.scalade)
+    if (mode == "local") {
+        .scalade <- here::here()
+    }
+    scalade_exists <- fs::file_exists(.scalade)
 
-    if (ladders_exist & overwrite == FALSE) {
-        cli::cli_alert_warning(
+    if (scalade_exists & overwrite == FALSE) {
+        cli::cli_alert_danger(
             c(
-                crayon::red("`~/.Rscalade`"),
-                " ladder spec file already exists.",
+                "A .Rscalade file already exists at:\n ",
+                crayon::red("  `", .scalade, "`\n "),
                 " Set ", crayon::red("`overwrite = TRUE`"),
-                " to replace with the base spec."
+                " to replace with the base prebuilt spec from this package, which can be seen via:\n",
+                crayon::green("  `data(scalade_prebuilt)`")
             )
         )
-        invisible()
+        return(invisible())
     }
 
-    readr::write_tsv(scalade_prebuilt_ladders, .scalade,
+    data(scalade_prebuilt)
+    readr::write_tsv(scalade_prebuilt, .scalade,
         col_names = TRUE, append = FALSE
     )
+    return(invisible())
 }
 
-#' Editing of ladders ---------------------------------------------------------
+#' Affix the session .Rscalade file to use via options()
+#'
+#' A little helper that does the hard part of writing out
+#' `options(scalade.rscalade = "/path/to/.Rscalade")` so that all
+#' functions know where to look for the .Rscalade. Overwrites any previously
+#' set .Rscalade in options.
+#'
+#' @param .scalade Path to existing .Rscalade file.
+#'
+#' @return None; called for the side effect of setting the location of an existing .Rscalade
+#'   file via `options(scalade.rscalade = "/path/to/.Rscalade")`.
+#'
+#' @name affix
+#' @export
+affix <- function(.scalade) {
+    scalade_exists <- fs::file_exists(.scalade)
+    if (scalade_exists) {
+        if (interactive()) {
+            cli::cli_alert_success(
+                c(
+                    "Setting .Rscalade to existing ladder definition:\n",
+                    crayon::green("   ", .scalade)
+                )
+            )
+        }
+        options(scalade.rscalade = .scalade)
+    }
+    if (!scalade_exists) {
+        rlang::abort(message = c(
+            cli::cli_alert_danger(
+                c("No .Rscalade file exists at:\n", crayon::red("  ", .scalade))
+            ),
+            cli::cli_alert_info(
+                c("Create a new .Rscalade file via ", crayon::green("`scalade::fresh()`"))
+            )
+        ))
+    }
+}
 
-#' @title Edit the ladder definitions
+
+
+#' @title Edit existing ladder definitions interactively
 #'
 #' @description
-#' Add, remove, and edit existing ladder definitions.
-#' 
+#' Add, remove, and edit existing ladder definitions interactively. `scalade::liveedit()` will
+#' pop open an interactive editor (as set by $EDITOR).
+#'
 #' @details Repos
-#' Note that for packages that are stored in remote (Github) repositories,
+#' Note that for packages that are stored in remote (Github) repositories (`repo = "Remote"`)
 #' the package name must be in a format compatible with `remotes::install_remote`,
 #' e.g. `<gh-username>/<repo>`.
 #'
-#' @param id.spec Specified ladder ID to work with.
+#' @param .scalade A .Rscalade ladder definition file to live edit.
+#' @param repo
 #'
 #' @return None; called for the side effect of editing the ~/.Rscalade file.
 #'
-#' @name edit_ladders
-NULL
-
-#' @rdname edit_ladders
+#' @name editlive
 #' @export
-edit_ladders <- function(.scalade = NULL) {
-        if (is.null(.scalade)) {
-        .scalade <- fs::path_expand("~/.Rscalade")
-    }
+liveedit <- function(.scalade = NULL) {
+    .scalade <- .check_rscalade(.scalade)
     usethis::edit_file(.scalade)
 }
 
-#' @rdname edit_ladders
+#' @title Edit existing ladder definitions via construction and destruction
+#'
+#' @description
+#' Add, remove, and edit existing ladder definitions programmatically. `scalade::build()` will
+#' take arguments to build a new ladder to append to an existing .Rscalade file (or create a new one
+#' if it doesn't exist). `scalade::burn()` will destroy a ladder from an existing .Rscalade file.
+#'
+#' @param id.spec The ID to assign to the ladder.
+#' @param repo The repo where the packages live (one of "CRAN", "Bioconductor", or "Remote" (Github))
+#' @param packages The list of packages to associate with the new ladder.
+#' @param .scalade The path to an existing or new .Rscalade file.
+#'
+#' @rdname edit
 #' @export
-build_ladder <- function(id, repo, packages, .scalade = NULL) {
-    if (is.null(.scalade)) {
-        .scalade <- fs::path_expand("~/.Rscalade")
-    }
+construct <- function(id.spec, repo, packages, .scalade = NULL) {
+    .scalade <- .check_rscalade(.scalade)
 
     if (!(repo %in% c("CRAN", "Bioconductor", "Remote"))) {
         cli::cli_alert_warning(
@@ -87,23 +142,21 @@ build_ladder <- function(id, repo, packages, .scalade = NULL) {
         return(invisible())
     }
 
-    new_ladder <- tibble::tibble(
-        id = id, repo = repo, package = packages
+    new <- tibble::tibble(
+        id = id.spec, repo = repo, package = packages
     )
 
-    readr::write_tsv(new_ladder, .scalade,
+    readr::write_tsv(new, .scalade,
         col_names = TRUE, append = TRUE
     )
 
     return(invisible())
 }
 
-#' @name edit_ladders
+#' @name edit
 #' @export
-burn_ladder <- function(id.spec = NULL, overwrite = FALSE, .scalade = NULL) {
-    if (is.null(.scalade)) {
-        .scalade <- fs::path_expand("~/.Rscalade")
-    }
+burn <- function(id.spec = NULL, overwrite = FALSE, .scalade = NULL) {
+    .scalade <- .check_rscalade(.scalade)
     ladders_exist <- fs::file_exists(.scalade)
     if (ladders_exist & overwrite == FALSE) {
         cli::cli_alert_warning(
@@ -128,8 +181,6 @@ burn_ladder <- function(id.spec = NULL, overwrite = FALSE, .scalade = NULL) {
     )
 }
 
-#' Pretty-printing ---------------------------------------------------------
-
 #' @title View defined ladders in a pretty-printed manner
 #'
 #' @description
@@ -138,25 +189,40 @@ burn_ladder <- function(id.spec = NULL, overwrite = FALSE, .scalade = NULL) {
 #'
 #' @param id.spec Specified ladder ID to inspect. If not specified shows
 #'   all available ladders with their associated packages.
+#' @param .scalade Location of the ladder definition file. Default is NULL.
+#'   If NULL (e.g. not set), it first searches for a .Rscalade file in the
+#'   project root (as defined by there `here` package), and failing that, will
+#'   search the user's home directory ("~/.Rscalade").
 #'
 #' @return Invisibly returns the tibble of ladder definitions. In the
 #'   printed output, a checkmark notes that the package is already installed
 #'   on your host computer, while a cross signifies the package is not
 #'   currently available.
 #'
-#' @name view_ladders
+#' @name view
 NULL
 
-#' @rdname view_ladders
+#' @rdname view
 #' @export
-inspect_ladders <- function(id.spec = NULL, .scalade = NULL) {
-    if (is.null(.scalade)) {
-        .scalade <- fs::path_expand("~/.Rscalade")
-    }
+inspect <- function(id.spec = NULL, .scalade = NULL) {
+    .scalade <- .check_rscalade(.scalade)
     scalade <- readr::read_tsv(.scalade, col_types = "ccc") %>%
         dplyr::group_by(id, repo) %>%
         tidyr::nest() %>%
         dplyr::ungroup()
+
+    if (!all(id.spec %in% scalade$id)) {
+        id.spec = id.spec[id.spec %in% scalade$id]
+        id.missing = id.spec[!(id.spec %in% scalade$id)]
+        if (length(id.spec) == 0) {
+            rlang::abort(c(
+                "None of the provided ladder IDs were found in the .Rscalade:\n",
+                crayon::red(.scalade))
+            )
+        }
+        cli::cli_alert_warning("The following ladder IDs were not found: ",
+            crayon::red(paste(id.missing, sep = ", ")))
+    }
 
     .try_pkgver <- function(p) {
         tryCatch(package_version(p), error = function(e) "NA")
@@ -199,30 +265,24 @@ inspect_ladders <- function(id.spec = NULL, .scalade = NULL) {
 }
 
 
-#' Attach ---------------------------------------------------------------------
-
 #' @title Attaches packages specified by ladders
 #'
 #' @description
 #' Loads up the family of packages associated with the designated
 #' ladders.
 #'
-#' @param id.spec A string or character vector with the ladder IDs
-#'   from which to get the packages to load based on the definitions in
-#'   ~/.Rscalade.
+#' @inheritParams inspect
 #' @param report_conflicts Whether to show the function conflicts that
 #'   arise from the loaded packages. Currently set by default to FALSE
 #'   as it can be quite noisy.
 #'
-#' @name load_ladders
+#' @name load
 NULL
 
-#' @rdname load_ladders
+#' @rdname load
 #' @export
-climb_ladder <- function(id.spec, report_conflicts = FALSE, .scalade = NULL) {
-    if (is.null(.scalade)) {
-        .scalade <- fs::path_expand("~/.Rscalade")
-    }
+climb <- function(id.spec, report_conflicts = FALSE, .scalade = NULL) {
+    .scalade <- .check_rscalade(.scalade)
     scalade <- readr::read_tsv(.scalade, col_types = "ccc") %>%
         dplyr::filter(id %in% id.spec)
 
@@ -234,15 +294,13 @@ climb_ladder <- function(id.spec, report_conflicts = FALSE, .scalade = NULL) {
                 crayon::red("`~/.Rscalade`")
             )
         )
-        return(invisible()) 
+        return(invisible())
     }
 
     id.out <- paste0(id.spec, collapse = ", ")
     to_attach(id.out, scalade$package, report_conflicts = report_conflicts)
 }
 
-
-#' Upgrades ------------------------------------------------------------------
 
 #' @title Install & upgrade packages from ladders
 #'
@@ -255,15 +313,13 @@ climb_ladder <- function(id.spec, report_conflicts = FALSE, .scalade = NULL) {
 #' is in two or more repos and will install first from Bioconductor, then CRAN,
 #' then Remote (Github) repositories.
 #'
-#' @param id.spec Ladders for which to install/upgrade.
+#' @inheritParams inspect
 #' @param ... Additional arguments to `remotes::install_*`.
 #'
-#' @name install_ladders
+#' @name install
 #' @export
-transport_ladder <- function(id.spec = NULL, .scalade = NULL, ...) {
-    if (is.null(.scalade)) {
-        .scalade <- fs::path_expand("~/.Rscalade")
-    }
+transport <- function(id.spec = NULL, .scalade = NULL, ...) {
+    .scalade <- .check_rscalade(.scalade)
 
     scalade <- readr::read_tsv(.scalade, col_types = "ccc") %>%
         dplyr::filter(id %in% id.spec) %>%
@@ -272,9 +328,9 @@ transport_ladder <- function(id.spec = NULL, .scalade = NULL, ...) {
         dplyr::select(-id) %>%
         dplyr::group_by(repo) %>%
         tidyr::nest()
-    
-    .install = function(repo, package_col) {
-        package_vctr = package_col$package
+
+    .install <- function(repo, package_col) {
+        package_vctr <- package_col$package
         if (repo == "CRAN") {
             remotes::install_cran(package_vctr, ...)
         }

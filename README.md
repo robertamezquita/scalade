@@ -36,13 +36,13 @@ Ladders are the term used herein for collections of packages organized
 under some identifier, e.g. “my\_analysis\_pkgs” is associated with
 “dplyr”, “tidyr”, “ggplot2”…etc.
 
-### Setup
+### Setup a New Ladder Definition
 
 First, we need to setup the scalade framework:
 
 ``` r
 ## library(scalade)
-scalade::setup_ladders()
+scalade::setup(mode = "home")
 ```
 
 This will create the necessary `~/.Rscalade` file that will hold the
@@ -52,12 +52,30 @@ ladders that are used to create the basis of the ladder definition file,
 future sessions easily.
 
 Note that you don’t have to keep the `.Rscalade` file in your home
-directory (`~`), you can make it for a specific project too - all the
-`*_ladder()` functions support a `.scalade = <file>` argument to specify
-where you want to place the ladder definitions:
+directory (`~`), you can make it for a specific project too. To do this,
+set `mode = "local"` to automagically infer your project root (via
+`here::here()`) and create a new `.Rscalade` there. Else, it can be
+specified manually via `mode = "manual"`, and the `.scalade` argument
+can be filled in with the desired path,
+e.g. `.scalade = "/path/to/my/new/.Rscalade"`.
+
+Also note that almost all the functions in this package support a
+`.scalade = <file>` argument to specify the ladder definition you want
+to work with.
+
+### Affix the Ladder
+
+To explicitly set the ladder definition to use for your session, use
+`scalade::affix()`, which will write to your `options()` by setting
+`options(scalade.rscalade = "/path/to/.Rscalade")`. Unless changed with
+another `scalade::affix()`, this will remain the ladder definition used
+throughout the other functions implicitly (e.g. no need to set
+`.scalade`).
 
 ``` r
-scalade::setup_ladders(.scalade = "my-project.Rscalade")
+scalade::affix(here::here(".Rscalade"))
+#> ✔ Setting .Rscalade to existing ladder definition:
+#> /Users/rob/Library/Mobile Documents/com~apple~CloudDocs/Projects/infrastructure/_single-cell/scalade/.Rscalade
 ```
 
 ### The Ladder Definitions
@@ -66,7 +84,8 @@ The format of `~/.Rscalade` is tidy, as shown in the predefined ladders
 provided as part of the package below:
 
 ``` r
-scalade:::scalade_prebuilt_ladders[1:5, ]
+data(scalade_prebuilt)
+scalade_prebuilt[1:5, ]
 #> # A tibble: 5 x 3
 #>   id            repo  package 
 #>   <chr>         <chr> <chr>   
@@ -88,12 +107,14 @@ what repo they’re from, and if we already have the package installed or
 not and if so what version we have:
 
 ``` r
-scalade::inspect_ladders('bioc_sc_methods')
-#> ── bioc_sc_methods ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── Bioconductor ──
+scalade::inspect('bioc_sc_methods')
+#> ✔ Using preset .Rscalade from `options(scalade.rscalade)`:
+#> /Users/rob/Library/Mobile Documents/com~apple~CloudDocs/Projects/infrastructure/_single-cell/scalade/.Rscalade
+#> ── bioc_sc_methods ────────────────────────────────────────────────────────────────────────────────────────────────────── Bioconductor ──
 #> ✔ SingleCellExperiment 1.12.0     ✔ batchelor            1.6.2 
-#> ✔ scuttle              1.0.4      ✔ zellkonverter        1.1.5 
-#> ✔ scran                1.18.5     ✖ scDblFinder          NA    
-#> ✖ DropletUtils         NA         ✖ SingleR              NA
+#> ✔ scuttle              1.0.4      ✔ zellkonverter        1.0.3 
+#> ✔ scran                1.18.5     ✔ scDblFinder          1.4.0 
+#> ✔ DropletUtils         1.10.3     ✔ SingleR              1.4.1
 #> 
 ```
 
@@ -106,7 +127,7 @@ all of them. In case of any missing packages (marked by an X), or even
 if we just want to upgrade our ladder, we can install/upgrade via:
 
 ``` r
-scalade::transport_ladder('bioc_sc_methods')
+scalade::transport('bioc_sc_methods')
 ```
 
 ### Creating (and Destroying) Ladders
@@ -116,10 +137,11 @@ This can be thought of as “transporting” the ladder from some store
 
 Now, let’s say we want to create a new ladder definition. We can do that
 either by directly interactively editing the ladder file via
-`scalade::edit_ladders()` or by creating new entries via:
+`scalade::liveedit()` or by creating new entries via
+`scalade::construct()`:
 
 ``` r
-scalade::build_ladder(
+scalade::construct(
   id = 'my_favorites', 
   repo = 'CRAN', 
   packages = c('dplyr', 'tidyr', 'purrr')
@@ -131,7 +153,7 @@ clean up our ladder collection - in that case we can destroy existing
 ladders:
 
 ``` r
-scalade::burn_ladder('my_favorites', overwrite = TRUE)
+scalade::burn('my_favorites', overwrite = TRUE)
 ```
 
 To prevent any accidents, setting the `overwrite = TRUE` argument is
@@ -144,13 +166,13 @@ attach a ladder or even multiple ladders to our project (e.g. load all
 the packages for a given set of ladders) via:
 
 ``` r
-scalade::climb_ladder('tidypkgs')
-scalade::climb_ladder('viz_static', 'networks')
+scalade::climb('tidypkgs')
+scalade::climb(c('viz_static', 'networks'))
 ```
 
 ``` r
-scalade::climb_ladder('viz_static')
-#> ── Attaching packages ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────── viz_static ──
+scalade::climb('viz_static')
+#> ── Attaching packages ───────────────────────────────────────────────────────────────────────────────────────────────────── viz_static ──
 #> ✔ ggplot2          3.3.3     ✔ ggforce          0.3.2
 #> ✔ httpgd           1.0.1     ✔ scico            1.2.0
 #> ✔ ragg             1.1.1     ✔ hierarchicalSets 1.0.2
@@ -158,19 +180,24 @@ scalade::climb_ladder('viz_static')
 ```
 
 Thus, for your projects, in lieu of library you can call upon the
-`climb_ladder()` function to load your family of functions all at once.
+`climb()` function to load your family of functions all at once.
 
 ### Portability
 
 To make the project portable the ladder definition file would also have
 to be shared. To make this easier without having to overwrite a friend’s
 `~/.Rscalade`, you can create such ladder definition files in an ad-hoc
-manner; all the `*_ladder()` functions support arbitrary `.Rscalade`
-style files via the `.scalade = <file.Rscalade>` option, e.g.:
+manner; all the `*()` functions support arbitrary `.Rscalade` style
+files via the `.scalade = <file.Rscalade>` option, e.g.:
 
 ``` r
-scalade::climb_ladder('my_project_pkgs', .scalade = here::here('project_v1.Rscalade'))
+scalade::climb('my_project_pkgs', .scalade = here::here('project_v1.Rscalade'))
 ```
+
+Note that even if you have a globally set .Rscalade as set by
+`scalade::affix()` that providing the `.scalade` argument will override
+that. This applies to all the functions. See `.check_rscalade()` for
+details on the search path.
 
 ## Contributions
 

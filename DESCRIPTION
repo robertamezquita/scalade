@@ -26,7 +26,10 @@ Imports:
     readr (>= 1.4.0),
     pillar (>= 1.5.0),
     usethis (>= 2.0.1),
-    rlang (>= 0.4.10)
+    rlang (>= 0.4.10),
+    here (>= 1.0.1),
+    crayon (>= 1.4.1),
+    tidyr (>= 1.1.3)
 Suggests: 
     covr,
     feather,

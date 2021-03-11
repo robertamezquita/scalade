@@ -51,3 +51,5 @@ bioc_development	Bioconductor	S4Vectors
 bioc_development	Bioconductor	GenomicRanges
 bioc_development	Bioconductor	SummarizedExperiment
 viz_generative	Remote	djnavarro/jasmines
+id	repo	package
+id	repo	package
